@@ -1,0 +1,42 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "cpp_utils"
+		},
+		{
+			"path": "tests"
+		}
+	],
+	"settings": {
+		"clangd.fallbackFlags": [
+			"-std=c++17",
+			"-I${workspaceFolder}/cpp_utils/include",
+			"-I/usr/include/python3.10",
+			"-DUSE_PYTHON"
+		],
+		"python.languageServer": "Pylance",
+		"files.associations": {
+			"*.h": "cpp",
+			"iostream": "cpp",
+			"*.tcc": "cpp",
+			"deque": "cpp",
+			"list": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp"
+		},
+		"files.exclude": {
+			"cpp-headers/.idea/shelf/": true,
+			"cpp-headers/.idea/workspace.xml": true,
+			"cpp-headers/**/*.so": true,
+			"cpp-headers/**/build": true,
+			"cpp-headers/**/dist": true,
+			"cpp-headers/**/*.pyc": true,
+			"cpp-headers/**/__pycache__": true
+		}
+	}
+}

@@ -1,5 +1,9 @@
+.idea
 **/*.so
 **/*.pyc
 **/__pycache__
+**/*.e
+**/*.out
+**/*.egg-info
 build
 dist
