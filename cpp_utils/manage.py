@@ -1,7 +1,7 @@
 from distutils.extension import Extension
 from importlib import import_module
-from os import listdir, getcwd
-from os.path import isdir, join
+from os import listdir, getcwd, walk
+from os.path import isdir, join, dirname
 from subprocess import run
 from sys import path, version_info
 from types import ModuleType
@@ -140,18 +140,41 @@ def get_extensions(*module_paths, lib_dir='lib'):
                 define_macros=[],
                 include_dirs=list(cfg['INCLUDES'] + (lib_dir,)),
                 libraries=list(cfg['LIBS']),
-                extra_compile_args=list(cfg['TEST_OPTS']) + ['-shared', '-fPIC'],
+                extra_compile_args=list(
+                    cfg['TEST_OPTS']) + ['-shared', '-fPIC'],
             )
 
 
+def get_file_directories(files):
+    d = set()
+    for f in files:
+        dd = dirname(f)
+        if dd:
+            d.add(dd)
+        else:
+            d.add('.')
+    return tuple(sorted(d))
+
+
+def get_extensions_files(extensions: Iterable[Extension]):
+    for e in extensions:
+        yield from e.sources
+        for d in e.include_dirs:
+            for root, dirs, files in walk(d):
+                for dd in dirs:
+                    yield f'{root}/{dd}/'
+
+
 def run_live_tests(test_extensions):
-    test_extensions = test_extensions
+    test_extensions = tuple(test_extensions)
     from cpp_utils.python_runner import TargetManager
     m = TargetManager()
     for e in test_extensions:
         m.push_source_extension(e)
     m.start_workers(4)
-    m.run_watcher("cpp_utils/include/utils", True)
+    m.run_watcher(get_file_directories(
+        get_extensions_files(test_extensions)
+    ), True)
 
 
 class LiveTestCommand(Command):

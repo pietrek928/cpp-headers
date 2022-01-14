@@ -25,7 +25,7 @@ class CompileDependencyTracker : public LockObject {
     notify();
   }
 
-  template <bool from_source> void inc_obj_dep(int v) {
+  void inc_obj_dep(int v, bool from_source = true) {
     auto f = dep_cnt.find(v);
     if (f == dep_cnt.end()) {
       dep_cnt[v] = from_source ? 1 : 2;
@@ -47,11 +47,11 @@ class CompileDependencyTracker : public LockObject {
       return;
     }
     for (auto &vv : reverse_dependency_graph[v]) {
-      inc_obj_dep<false>(vv);
+      inc_obj_dep(vv, false);
     }
   }
 
-  template <bool start> void dec_dep(int v) {
+  void dec_dep(int v, bool start = true) {
     auto f = dep_cnt.find(v);
     if (f == dep_cnt.end() || !f->second) {
       if (!start) {
@@ -63,7 +63,7 @@ class CompileDependencyTracker : public LockObject {
     if (f->second <= 0) {
       dep_cnt.erase(f);
       for (auto &vv : reverse_dependency_graph[v]) {
-        dec_dep<false>(vv);
+        dec_dep(vv, false);
       }
     } else if (f->second == 1) {
       add_to_compile(v);
@@ -76,7 +76,7 @@ public:
 
     if (generated_obj.find(v) == generated_obj.end()) {
       for (auto &vv : reverse_dependency_graph[v]) {
-        inc_obj_dep<true>(vv);
+        inc_obj_dep(vv);
       }
     } else {
       // TODO: do sth ? recompile ???
@@ -112,7 +112,7 @@ public:
     auto l = lock();
 
     failed_obj.erase(v);
-    dec_dep<true>(v);
+    dec_dep(v);
   }
 
   void clear_state() {
@@ -143,7 +143,11 @@ public:
     add_deps.resize(it - add_deps.begin());
     for (auto &d : add_deps) {
       reverse_dependency_graph[d].push_back(v);
-      inc_obj_dep<true>(v);
+      if (generated_obj.find(d) == generated_obj.end()) {
+        inc_obj_dep(v, true);
+      } else {
+        inc_obj_dep(v, false);
+      }
     }
 
     std::vector<int> rm_deps(std::max(old_deps.size(), new_deps.size()));
@@ -157,7 +161,7 @@ public:
 
       auto f = dep_cnt.find(d);
       if (f != dep_cnt.end() && f->second) {
-        dec_dep<false>(v);
+        dec_dep(v, false);
       }
     }
   }

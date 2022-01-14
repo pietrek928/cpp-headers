@@ -26,9 +26,7 @@ template <class... Ttarget_types> class TargetManager : LockObject {
   File2Number file_mapper;
   std::vector<std::thread> compile_workers;
 
-  template <class T> auto translate(T v) {
-    return file_mapper.get(v);
-  }
+  template <class T> auto translate(T v) { return file_mapper.get(v); }
 
   void init_objects() {
     auto l = lock();
@@ -90,8 +88,11 @@ public:
     }
   }
 
-  void run_watcher(const std::string &watched_dir, bool compile_on_start) {
-    std::vector<std::string> watched_dirs = {watched_dir};
+  void run_watcher(const boost::python::object &watched_dir_,
+                   bool compile_on_start) {
+    std::vector<std::string> watched_dirs;
+    extend_vector(watched_dirs, watched_dir_);
+
     init_objects();
 
     if (!compile_on_start) {
